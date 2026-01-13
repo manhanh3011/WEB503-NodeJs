@@ -1,46 +1,25 @@
 import express from "express";
 import cors from "cors";
+import router from "./routers";
+import mongoose from "mongoose";
+
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 
+// khai báo router
+app.use("/api", router);
 
-//thêm sản phẩm
-app.post("/products", (req, res) => {
-    const product = { id: products.length + 1, ...req.body};
-    products.push(product);
-    return res.status(201).json(products);
-})
-
-//cập nhật
-app.put("/products/:id", (req, res) => {
-    const product = products.find(product => product.id == req.params.id);
-    if(!product){
-        return res.status(404).json({
-            messge: "Không tìm thấy sản phẩm"
-        });
-    }
-    
-    const {name, price} = req.body;
-    product.name = name || product.name;
-    product.price = price || product.price;
-})
-
-
-app.delete("/products/:id", (req, res) => {
-    // tìm index của sản phẩm
-    const index = products.findIndex((p) => p.id === parseInt(req.params.id));
-    // nếu không tìm ra index thì trả về 404
-    if (index === -1) return res.status(404).json({ error: "Products not found" });
-
-    // Xóa sản phẩm
-    products.splice(index, 1);
-    // trả về phía client
-    return res.json({ success: true });
-});
-
-
+//kết nối database
+mongoose
+    .connect("mongodb://localhost:27017/WD20306")
+    .then(() => {
+        console.log("Kết nối database thành công")
+    })
+    .catch((error) => {
+        console.log("Kết nối database thất bại", error)
+    })
 
 app.listen(3000, () => {
     console.log("Server đang chạy cổng 3000");

@@ -1,4 +1,7 @@
 import Product from "../models/product.model";
+import Joi from "joi";
+
+
 
 //lấy danh sách
 export const getAll = async (req, res) => {
@@ -7,7 +10,6 @@ export const getAll = async (req, res) => {
         return res.json(products);
     } catch (error) {
         return res.json(500).json({
-            messege: "Lỗi khi lấy danh sách sản phẩm",
             error: error.messege,
         })
     }
@@ -16,11 +18,16 @@ export const getAll = async (req, res) => {
 //lấy 1 sản phẩm
 export const getOne = async (req, res) => {
     try {
-        const products = await Product.find();
-        return res.json(products);
+        const product = await Product.findById(req.params.id);
+        if(!product){
+            return res.status(400).json({
+                message: "Không có sản phẩm nào",
+            });
+        }
+        return res.json(product);
     } catch (error) {
         return res.json(500).json({
-            messege: "Lỗi khi lấy danh sách sản phẩm",
+            messege: "Không có sản phẩm nào",
             error: error.messege,
         })
     }
@@ -29,6 +36,12 @@ export const getOne = async (req, res) => {
 //thêm sản phẩm
 export const createOne = async (req, res) => {
     try {
+        //validate
+        const {error} = schema.validate(req.body);
+        if(error){
+            return res.status(400).json(error.details.map(item => item.message))
+        }
+
         const product = await Product.create(req.body);
         return res.status(201).json(product);
     } catch (error) {
@@ -40,27 +53,30 @@ export const createOne = async (req, res) => {
 };
 
 //cập nhật
-export const updateOne = (req, res) => {
-    const product = products.find(product => product.id == req.params.id);
-    if(!product){
-        return res.status(404).json({
-            messge: "Không tìm thấy sản phẩm"
+export const updateOne = async (req, res) => {
+    try {
+        const product = await Product.findByIdAndUpdate(req.params.id, req.body, {new: true});
+        return res.json(product);
+    } catch (error) {
+        return res.status(500).json({
+            message: "Lỗi khi cập nhật sản phẩm",
+            error: error.message,
         });
     }
-    
-    const {name, price} = req.body;
-    product.name = name || product.name;
-    product.price = price || product.price;
 };
 
 //xoá
-export const deleteOne = (req, res) => {
-    const index = products.findIndex((p) => p.id === parseInt(req.params.id));
-    // nếu không tìm ra index thì trả về 404
-    if (index === -1) return res.status(404).json({ error: "Products not found" });
-
-    // Xóa sản phẩm
-    products.splice(index, 1);
-    return res.json({ success: true });
+export const deleteOne = async (req, res) => {
+    try {
+        await Product.findByIdAndDelete(req.params.id);
+        return res.json({
+            message: "Xoá sản phẩm thành công",
+        })
+    } catch (error) {
+        return res.status(500).json({
+            message: "Lỗi khi xoá sản phẩm",
+            error: error.message,
+        });
+    }
 };
 

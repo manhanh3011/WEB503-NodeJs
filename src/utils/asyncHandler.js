@@ -6,8 +6,8 @@ export const asyncHandler = (fn) => {
                 return res.json(result);
             }
         } catch (error) {
-            return res.status(400).json({
-                messege: error.messege,
+            return res.status(500).json({
+                error: error.message,
             })
         }
     }
